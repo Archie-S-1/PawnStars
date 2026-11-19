@@ -25,13 +25,50 @@
     { id: 'lava', name: 'Lava', light: '#f6c177', dark: '#7a2e2e' },
     { id: 'mono', name: 'Mono', light: '#e6e6e6', dark: '#7d7d7d' }
   ];
+  /* Website themes: site colours, board, matching pieces and an animated background. */
+  var WORLDS = [
+    { id: 'classic', name: 'Classic', fx: null, preview: 'linear-gradient(135deg,#1b2029,#12151c)',
+      board: ['#f0d9b5', '#b58863'], hl: '#f5d742', set: 'royal', accent: null },
+    { id: 'fire', name: 'Fire', fx: 'embers', preview: 'radial-gradient(circle at 50% 120%,#ff6a1a,#3a0d06 60%,#160806)',
+      board: ['#f9c784', '#b8401f'], hl: '#ffd23f', set: 'ember', accent: '#ff7a1a',
+      vars: { bg: '#160806', panel: 'rgba(40,14,9,0.82)', 'panel-2': '#3c1a11', ink: '#fff1e6', muted: '#dcab92', line: '#5e2b1b', glow: 'rgba(255,110,30,0.45)' } },
+    { id: 'stars', name: 'Starry Night', fx: 'stars', preview: 'radial-gradient(circle at 70% 20%,#2c3a88,#0a0f2b 60%,#05081a)',
+      board: ['#9db0e6', '#2c3a78'], hl: '#ffd45c', set: 'celestial', accent: '#ffd45c',
+      vars: { bg: '#060a1d', panel: 'rgba(14,20,50,0.8)', 'panel-2': '#1b2452', ink: '#eef2ff', muted: '#a3afe0', line: '#2a3570', glow: 'rgba(120,150,255,0.45)' } },
+    { id: 'water', name: 'Water', fx: 'bubbles', preview: 'linear-gradient(180deg,#1aa3b8,#06394a 70%,#04232e)',
+      board: ['#c4f1f4', '#2b8fa8'], hl: '#7cf2e4', set: 'glass', accent: '#3fe0d0',
+      vars: { bg: '#04232e', panel: 'rgba(6,50,64,0.78)', 'panel-2': '#0b4757', ink: '#e8fbff', muted: '#93cdd9', line: '#165c6d', glow: 'rgba(63,224,208,0.4)' } },
+    { id: 'forest', name: 'Forest', fx: 'leaves', preview: 'linear-gradient(160deg,#3f6b34,#13261a 70%)',
+      board: ['#e6dfb4', '#5f7f3e'], hl: '#d6e86a', set: 'wood', accent: '#9bdb4d',
+      vars: { bg: '#0d1a10', panel: 'rgba(20,40,24,0.84)', 'panel-2': '#23412b', ink: '#eef7e9', muted: '#a8c3a1', line: '#2f5236', glow: 'rgba(155,219,77,0.3)' } },
+    { id: 'snow', name: 'Snow', fx: 'snow', light: true, preview: 'linear-gradient(180deg,#ffffff,#cfe3f2)',
+      board: ['#f4f9fd', '#9cc3e0'], hl: '#8fd3ff', set: 'crystal', accent: '#2b8fd6',
+      vars: { bg: '#dfeaf4', panel: 'rgba(255,255,255,0.82)', 'panel-2': '#e3eef7', ink: '#13283a', muted: '#4f6a80', line: '#c2d6e6', glow: 'rgba(43,143,214,0.25)' } },
+    { id: 'candy', name: 'Candy', fx: 'sprinkles', light: true, preview: 'linear-gradient(135deg,#ffd6e8,#fff3c9)',
+      board: ['#fff3c9', '#ff9ec7'], hl: '#7cf29c', set: 'gummy', accent: '#ff4fa0',
+      vars: { bg: '#ffe9f3', panel: 'rgba(255,255,255,0.85)', 'panel-2': '#ffe0ee', ink: '#4a1736', muted: '#9a5a7d', line: '#f6b8d3', glow: 'rgba(255,79,160,0.3)' } },
+    { id: 'synth', name: 'Synthwave', fx: 'synth', preview: 'linear-gradient(180deg,#2e0b5c,#ff3ecf 140%)',
+      board: ['#6c3fb0', '#241046'], hl: '#ff3ecf', set: 'neon', accent: '#ff3ecf',
+      vars: { bg: '#12002b', panel: 'rgba(30,6,60,0.82)', 'panel-2': '#2e0b5c', ink: '#fbe9ff', muted: '#c8a2e9', line: '#4b1a85', glow: 'rgba(255,62,207,0.45)' } },
+    { id: 'storm', name: 'Storm', fx: 'rain', preview: 'linear-gradient(180deg,#3a4452,#10141a)',
+      board: ['#b9c3cf', '#56606e'], hl: '#8ecbff', set: 'marble', accent: '#8ecbff',
+      vars: { bg: '#10141a', panel: 'rgba(28,34,44,0.86)', 'panel-2': '#2a3240', ink: '#e9eef5', muted: '#9aa7b8', line: '#36404f', glow: 'rgba(142,203,255,0.25)' } },
+    { id: 'paper', name: 'Paper', fx: null, light: true, preview: 'repeating-linear-gradient(0deg,#f7f3e8 0 13px,#dcd3bd 13px 14px)',
+      board: ['#f7f3e8', '#c9c1ad'], hl: '#f2d36b', set: 'sketch', accent: '#d9481c',
+      vars: { bg: '#efe9da', panel: 'rgba(255,253,246,0.9)', 'panel-2': '#f3eddd', ink: '#2b2722', muted: '#6e6556', line: '#d6ccb5', glow: 'rgba(0,0,0,0.1)' } }
+  ];
+  function findWorld(id) { for (var i = 0; i < WORLDS.length; i++) if (WORLDS[i].id === id) return WORLDS[i]; return WORLDS[0]; }
+
   var ACCENTS = ['#f2b544', '#ff6b6b', '#4dabf7', '#51cf66', '#cc5de8', '#ff922b', '#22b8cf', '#f06595'];
   var DEFAULTS = {
     boardTheme: 'wood', light: '#f0d9b5', dark: '#b58863', hl: '#f5d742', sel: '#6fb1ff',
     pieceSet: 'royal', pieceColors: null, appTheme: 'dark', accent: null,
-    coords: true, legal: true, sound: true, animate: true, autoQueen: false
+    coords: true, legal: true, sound: true, animate: true, autoQueen: false,
+    world: 'classic', bgfx: true, customSets: []
   };
   var settings = Object.assign({}, DEFAULTS, LS.get('settings', {}));
+  if (!Array.isArray(settings.customSets)) settings.customSets = [];
+  Pieces.setCustom(settings.customSets);
   var customPieces = LS.get('customPieces', {});
   var prefs = Object.assign({ name: '', time: '10+0', color: 'random', isPublic: true, level: '2', aiColor: 'w' }, LS.get('prefs', {}));
   // Seats in games: this tab's own seats, plus ones saved from earlier visits.
@@ -52,15 +89,26 @@
 
   function pieceColors() {
     if (settings.pieceColors) return settings.pieceColors;
-    var set = Pieces.SETS.find(function (s) { return s.id === settings.pieceSet; }) || Pieces.SETS[0];
-    return set.colors;
+    return Pieces.find(settings.pieceSet).colors;
   }
   function pieceHTML(p, setId) { return Pieces.html(p, setId || settings.pieceSet, setId && setId !== settings.pieceSet ? null : pieceColors(), customPieces); }
 
+  var WORLD_VARS = ['bg', 'panel', 'panel-2', 'ink', 'muted', 'line', 'glow'];
   function applySettings() {
     var root = document.documentElement;
-    var theme = settings.appTheme;
-    if (theme === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', theme);
+    var world = findWorld(settings.world);
+    Pieces.setCustom(settings.customSets);
+    if (world.vars) {
+      root.setAttribute('data-theme', world.light ? 'light' : 'dark');
+      root.setAttribute('data-world', world.id);
+      WORLD_VARS.forEach(function (k) { root.style.setProperty('--' + k, world.vars[k]); });
+    } else {
+      root.removeAttribute('data-world');
+      WORLD_VARS.forEach(function (k) { root.style.removeProperty('--' + k); });
+      var theme = settings.appTheme;
+      if (theme === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', theme);
+    }
+    if (window.Effects) Effects.set(settings.bgfx ? world.fx : null);
     root.style.setProperty('--sq-light', settings.light);
     root.style.setProperty('--sq-dark', settings.dark);
     root.style.setProperty('--hl', settings.hl);
@@ -475,7 +523,8 @@
 
   function joinOnline(code) {
     code = String(code || '').trim().toUpperCase();
-    if (!/^[A-Z0-9]{4,8}$/.test(code)) { toast('Game codes are 5 letters or numbers, like ABC12.'); return; }
+    code = code.replace(/\s+/g, '');
+    if (!/^[A-Z0-9]{4,8}$/.test(code)) { toast('Game codes are 4 numbers, like 4821.'); return; }
     ensureName().then(function (name) {
       api('join', { code: code, name: name, token: tokens[code], savedToken: savedTokens[code] })
         .then(function (res) {
@@ -933,17 +982,18 @@
   $('#drawerBackdrop').addEventListener('click', closeDrawer);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('#drawer').hidden) closeDrawer(); });
 
-  var activeTab = 'board';
+  var activeTab = 'world';
   $$('.tab').forEach(function (t) {
-    t.addEventListener('click', function () { activeTab = t.getAttribute('data-tab'); renderTabs(); });
+    t.addEventListener('click', function () { maker = null; activeTab = t.getAttribute('data-tab'); renderDrawer(); });
   });
   function renderTabs() {
-    $$('.tab').forEach(function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-tab') === activeTab)); });
+    $$('.tab').forEach(function (t) { t.setAttribute('aria-selected', String(t.getAttribute('data-tab') === (activeTab === 'maker' ? 'pieces' : activeTab))); });
     $$('.tab-panel').forEach(function (p) { p.hidden = p.getAttribute('data-panel') !== activeTab; });
   }
 
   function changed() {
-    saveSettings(); applySettings(); renderDrawer();
+    saveSettings(); applySettings(); renderHomeThemes();
+    if (activeTab !== 'maker') renderDrawer();
     if (view) renderAll(false);
   }
 
@@ -966,9 +1016,22 @@
     $('#hlColor').value = settings.hl; $('#selColor').value = settings.sel;
     $('#optCoords').checked = settings.coords; $('#optLegal').checked = settings.legal;
 
+    // website themes
+    var ws = $('#worldSwatches'); ws.innerHTML = '';
+    WORLDS.forEach(function (w) {
+      var on = settings.world === w.id;
+      var b = el('button', { class: 'world', type: 'button', role: 'radio', 'aria-checked': String(on), 'aria-label': w.name + ' theme' });
+      var ph = function (pc) { return Pieces.html(pc, w.set, null, customPieces); };
+      b.innerHTML = '<span class="scene" style="background:' + w.preview + '"><span class="mb"><span style="background:' + w.board[0] + '">' + ph('K') + '</span><span style="background:' + w.board[1] + '">' + ph('q') + '</span><span style="background:' + w.board[0] + '">' + ph('N') + '</span></span></span>';
+      b.appendChild(el('span', { class: 'nm', text: w.name }));
+      b.addEventListener('click', function () { applyWorld(w.id); });
+      ws.appendChild(b);
+    });
+    $('#optBgfx').checked = settings.bgfx;
+
     // piece sets
     var ss = $('#setSwatches'); ss.innerHTML = '';
-    Pieces.SETS.forEach(function (s) {
+    Pieces.allSets().forEach(function (s) {
       var on = settings.pieceSet === s.id;
       var sw = el('button', { class: 'swatch', type: 'button', role: 'radio', 'aria-checked': String(on), 'aria-label': s.name + ' pieces' });
       var cols = on ? pieceColors() : s.colors;
@@ -976,7 +1039,11 @@
       sw.innerHTML = '<span class="mini set"><span style="background:' + settings.light + '">' + p('K') + '</span><span style="background:' + settings.dark + '">' + p('n') + '</span>' +
         '<span style="background:' + settings.dark + '">' + p('q') + '</span><span style="background:' + settings.light + '">' + p('P') + '</span></span>';
       sw.appendChild(el('span', { text: s.name }));
-      sw.addEventListener('click', function () { settings.pieceSet = s.id; settings.pieceColors = null; changed(); });
+      if (isMine(s.id)) sw.appendChild(el('span', { class: 'tag', text: on ? 'Yours · click to edit' : 'Yours' }));
+      sw.addEventListener('click', function () {
+        if (on && isMine(s.id)) { openMaker(s); return; }
+        settings.pieceSet = s.id; settings.pieceColors = null; changed();
+      });
       ss.appendChild(sw);
     });
     var pc = pieceColors();
@@ -1014,6 +1081,125 @@
     $('#optSound').checked = settings.sound; $('#optAnim').checked = settings.animate; $('#optAutoQueen').checked = settings.autoQueen;
   }
 
+  function isMine(id) { return /^my-/.test(id); }
+
+  function applyWorld(id) {
+    var w = findWorld(id);
+    settings.world = w.id;
+    settings.light = w.board[0]; settings.dark = w.board[1]; settings.boardTheme = 'world';
+    settings.hl = w.hl; settings.pieceSet = w.set; settings.pieceColors = null; settings.accent = w.accent;
+    changed();
+  }
+
+  function renderHomeThemes() {
+    var box = $('#homeThemes'); if (!box) return;
+    box.innerHTML = '';
+    WORLDS.forEach(function (w) {
+      var b = el('button', { class: 'theme-chip', type: 'button', role: 'radio', 'aria-checked': String(settings.world === w.id) });
+      b.appendChild(el('span', { class: 'sw', style: 'background:' + w.preview }));
+      b.appendChild(document.createTextNode(w.name));
+      b.addEventListener('click', function () { applyWorld(w.id); });
+      box.appendChild(b);
+    });
+  }
+
+  /* ---------- make your own set ---------- */
+  var maker = null;
+  var SCULPT = { classic: 1, chunky: 1, slim: 1 };
+  function openMaker(base) {
+    base = base || Pieces.find(settings.pieceSet);
+    if (base.photos) base = Pieces.find('royal');
+    var spec = JSON.parse(JSON.stringify(base.spec || {}));
+    var glow = spec.glow && typeof spec.glow === 'object' ? spec.glow.w : spec.glow;
+    spec.glow = glow && glow !== 'self' ? glow : glow === 'self' ? '#ffffff' : null;
+    var cols = isMine(base.id) ? base.colors : (base.id === settings.pieceSet ? pieceColors() : base.colors);
+    maker = {
+      editing: isMine(base.id) ? base.id : null,
+      name: isMine(base.id) ? base.name : '',
+      spec: spec, colors: { w: cols.w, b: cols.b },
+      outlineColor: spec.outline && spec.outline !== 'tone' ? spec.outline : '#222222',
+      glowColor: spec.glow || '#ffd45c'
+    };
+    if (spec.finish === 'neon') maker.spec.glow = null;
+    activeTab = 'maker';
+    renderTabs(); renderMaker();
+    $('#drawer').scrollTop = 0;
+  }
+  function makerChips(id, list, key) {
+    var box = $(id); box.innerHTML = '';
+    list.forEach(function (it) {
+      var cur = maker.spec[key] || list[0][0];
+      var c = el('button', { class: 'chip', type: 'button', role: 'radio', 'aria-checked': String(cur === it[0]), text: it[1] });
+      c.addEventListener('click', function () { maker.spec[key] = it[0]; renderMaker(); });
+      box.appendChild(c);
+    });
+  }
+  function renderMaker() {
+    if (!maker) return;
+    var sp = maker.spec;
+    makerChips('#makerShape', Pieces.SHAPES, 'shape');
+    makerChips('#makerFinish', Pieces.FINISHES, 'finish');
+    makerChips('#makerDeco', Pieces.DECOS, 'deco');
+    var sculpt = !!SCULPT[sp.shape || 'classic'];
+    $('#makerSculpt').hidden = !sculpt;
+    $('#makerStroke').disabled = !sculpt;
+    $('#makerName').value = maker.name;
+    $('#makerW').value = maker.colors.w; $('#makerB').value = maker.colors.b;
+    var auto = !sp.outline || sp.outline === 'tone';
+    $('#makerAutoOutline').checked = auto;
+    $('#makerOutline').value = maker.outlineColor;
+    $('#makerStroke').value = sp.stroke === undefined ? 2.6 : sp.stroke;
+    $('#makerGlowOn').checked = !!sp.glow;
+    $('#makerGlow').value = maker.glowColor;
+    $('#makerDelete').hidden = !maker.editing;
+    renderMakerPreview();
+  }
+  function renderMakerPreview() {
+    var order = ['r', 'n', 'b', 'q', 'k', 'p', 'P', 'K', 'Q', 'B', 'N', 'R'];
+    $('#makerPreview').innerHTML = order.map(function (p) { return '<span>' + Pieces.preview(p, maker.spec, maker.colors) + '</span>'; }).join('');
+  }
+  function makerInput(id, fn) { $(id).addEventListener('input', function (e) { if (!maker) return; fn(e.target); renderMakerPreview(); }); }
+  makerInput('#makerName', function (t) { maker.name = t.value.slice(0, 18); });
+  makerInput('#makerW', function (t) { maker.colors.w = t.value; });
+  makerInput('#makerB', function (t) { maker.colors.b = t.value; });
+  makerInput('#makerOutline', function (t) { maker.outlineColor = t.value; maker.spec.outline = t.value; $('#makerAutoOutline').checked = false; });
+  makerInput('#makerAutoOutline', function (t) { maker.spec.outline = t.checked ? null : maker.outlineColor; });
+  makerInput('#makerStroke', function (t) { maker.spec.stroke = parseFloat(t.value); });
+  makerInput('#makerGlowOn', function (t) { maker.spec.glow = t.checked ? maker.glowColor : null; });
+  makerInput('#makerGlow', function (t) { maker.glowColor = t.value; maker.spec.glow = t.value; $('#makerGlowOn').checked = true; });
+  $('#makeSetBtn').addEventListener('click', function () { openMaker(); });
+  $('#makerBack').addEventListener('click', function () { maker = null; activeTab = 'pieces'; renderDrawer(); });
+  $('#makerSave').addEventListener('click', function () {
+    var sp = JSON.parse(JSON.stringify(maker.spec));
+    if (!sp.outline) delete sp.outline;
+    if (!sp.glow) delete sp.glow;
+    var mine = settings.customSets.filter(function (x) { return isMine(x.id); });
+    var name = (maker.name || '').trim() || 'My set ' + (mine.length + 1);
+    var set = { id: maker.editing || 'my-' + Date.now().toString(36), name: name, colors: { w: maker.colors.w, b: maker.colors.b }, spec: sp };
+    var i = settings.customSets.findIndex(function (x) { return x.id === set.id; });
+    if (i >= 0) settings.customSets[i] = set;
+    else {
+      if (settings.customSets.length >= 24) { toast('You can keep up to 24 sets. Delete one first.'); return; }
+      settings.customSets.push(set);
+    }
+    settings.pieceSet = set.id; settings.pieceColors = null;
+    maker = null; activeTab = 'pieces';
+    changed();
+    toast('Saved "' + name + '". You can find it under Piece style.');
+  });
+  $('#makerDelete').addEventListener('click', function () {
+    if (!maker || !maker.editing) return;
+    var b = $('#makerDelete');
+    if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Sure? Click again'; setTimeout(function () { delete b.dataset.armed; b.textContent = 'Delete set'; }, 3000); return; }
+    delete b.dataset.armed; b.textContent = 'Delete set';
+    var id = maker.editing;
+    settings.customSets = settings.customSets.filter(function (x) { return x.id !== id; });
+    if (settings.pieceSet === id) { settings.pieceSet = 'royal'; settings.pieceColors = null; }
+    maker = null; activeTab = 'pieces';
+    changed();
+    toast('Set deleted.');
+  });
+
   function bindColor(id, fn) {
     var inp = $(id);
     inp.addEventListener('input', function () { fn(inp.value); saveSettings(); applySettings(); if (view) renderAll(false); });
@@ -1028,10 +1214,18 @@
   $('#resetPieceColors').addEventListener('click', function () { settings.pieceColors = null; changed(); });
   function bindCheck(id, key) { $(id).addEventListener('change', function (e) { settings[key] = e.target.checked; changed(); }); }
   bindCheck('#optCoords', 'coords'); bindCheck('#optLegal', 'legal'); bindCheck('#optSound', 'sound');
-  bindCheck('#optAnim', 'animate'); bindCheck('#optAutoQueen', 'autoQueen');
-  $('#appThemeChips').addEventListener('click', function (e) { var c = e.target.closest('.chip'); if (!c) return; settings.appTheme = c.getAttribute('data-v'); changed(); });
+  bindCheck('#optAnim', 'animate'); bindCheck('#optAutoQueen', 'autoQueen'); bindCheck('#optBgfx', 'bgfx');
+  $('#appThemeChips').addEventListener('click', function (e) {
+    var c = e.target.closest('.chip'); if (!c) return;
+    settings.appTheme = c.getAttribute('data-v');
+    if (settings.world !== 'classic') { settings.world = 'classic'; toast('Switched to the Classic theme so light or dark can apply.'); }
+    changed();
+  });
   $('#clearCustom').addEventListener('click', function () { customPieces = {}; LS.set('customPieces', customPieces); changed(); });
-  $('#resetAll').addEventListener('click', function () { settings = Object.assign({}, DEFAULTS); changed(); toast('Back to the default look.'); });
+  $('#resetAll').addEventListener('click', function () {
+    settings = Object.assign({}, DEFAULTS, { customSets: settings.customSets });
+    changed(); toast('Back to the default look. Your own piece sets are still saved.');
+  });
 
   function loadPieceImage(key, file) {
     var reader = new FileReader();
@@ -1066,6 +1260,14 @@
   }
   window.addEventListener('popstate', route);
 
+  $('#codeInput').addEventListener('input', function (e) {
+    // keep only numbers; if someone pastes a whole link, use the code at the end of it
+    var v = e.target.value.replace(/[^0-9]/g, '');
+    if (v.length > 4) v = v.slice(-4);
+    if (v !== e.target.value) e.target.value = v;
+  });
+
   applySettings();
+  renderHomeThemes();
   route();
 })();

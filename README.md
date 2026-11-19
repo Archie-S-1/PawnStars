@@ -3,12 +3,13 @@
 A chess website you can play with friends. One person makes a game and sends the link. The other person opens it and the game starts. Nobody needs an account.
 
 **What's included**
-- Online games by link or 5-letter code, plus a list of open games on the home page
+- Online games by link or 4-number code, plus a list of open games on the home page
 - Clocks (3+2, 5 min, 10 min, 15+10 or no clock), draw offers, resign, rematch and chat
 - Spectators: anyone else who opens the link can watch
 - Play the computer (4 levels), or pass and play on one laptop
-- 12 board themes, or your own square colours
-- 7 piece sets (Royal, Velvet, Flat, Neon, Pixel, Geo, Letters), any piece colours, or upload your own piece pictures
+- 10 website themes (Classic, Fire, Starry Night, Water, Forest, Snow, Candy, Synthwave, Storm, Paper) with animated backgrounds and matching boards and pieces
+- 12 board colour presets, or your own square colours
+- 16 piece styles, any piece colours, a "Make your own set" maker (shape, finish, decoration, outline, glow), or upload your own piece pictures
 - Dark/light site theme, accent colour, sounds, move animations and coordinates
 - Everyone's look is saved in their own browser, so your friend can use pink neon while you use wood
 
@@ -35,10 +36,10 @@ You need a free **GitHub** account (to store the files) and a free **Render** ac
 1. Go to https://github.com and sign up or log in.
 2. Click **+** (top right) → **New repository**. Name it `pawn-stars`, leave it **Public**, and click **Create repository**.
 3. On the next page, click the **uploading an existing file** link.
-4. Unzip `PawnStars.zip` on your laptop. Open the `PawnStars` folder and drag **everything inside it** into the GitHub page. That's 14 files in total.
+4. Unzip `PawnStars.zip` on your laptop. Open the `PawnStars` folder and drag **everything inside it** into the GitHub page. That's 15 files in total.
 5. Click **Commit changes**.
 
-Check that all 14 files show up on GitHub, including `chess-engine.js`, `pieces.js`, `ai.js` and `ai-worker.js`.
+Check that all 15 files show up on GitHub, including `chess-engine.js`, `pieces.js`, `ai.js`, `ai-worker.js` and `effects.js`.
 
 ### 2. Run it on Render
 1. Go to https://render.com and sign up using **Sign in with GitHub**.
@@ -75,5 +76,6 @@ Open http://localhost:3000. Other laptops on the same Wi-Fi can join using your 
 | `style.css` | How it looks |
 | `app.js` | The board, buttons, customise panel and online connection |
 | `chess-engine.js` | The chess rules (used by both the page and the server) |
-| `pieces.js` | The piece sets, all drawn in code |
+| `pieces.js` | The piece styles and the set maker, all drawn in code |
+| `effects.js` | The animated theme backgrounds |
 | `ai.js`, `ai-worker.js` | The computer opponent |

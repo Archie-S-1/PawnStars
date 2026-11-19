@@ -5,17 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pawn Stars Chess</title>
 <meta name="description" content="Play chess with your friends online. Send a link, pick your board and pieces, play.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23f2b544'/%3E%3Ccircle cx='50' cy='36' r='13' fill='%23161a22'/%3E%3Cpath d='M34 82 Q37 60 44 52 L56 52 Q63 60 66 82 Z' fill='%23161a22'/%3E%3Cpath d='M78 10 L81 18 L89 18 L83 23 L85 31 L78 26 L71 31 L73 23 L67 18 L75 18 Z' fill='%23161a22'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100' height='100' rx='24' fill='%230b0b0d'/%3E%3Cpath d='M27 31 L29.5 37.5 L36 37.5 L31 41.5 L33 48 L27 44 L21 48 L23 41.5 L18 37.5 L24.5 37.5 Z' fill='%23ff8a00'/%3E%3Cpath d='M50 9 L53 17 L61 17 L54.5 22 L57 30 L50 25 L43 30 L45.5 22 L39 17 L47 17 Z' fill='%23ff8a00'/%3E%3Cpath d='M73 31 L75.5 37.5 L82 37.5 L77 41.5 L79 48 L73 44 L67 48 L69 41.5 L64 37.5 L70.5 37.5 Z' fill='%23ff8a00'/%3E%3Ccircle cx='50' cy='46' r='11' fill='%23ffffff'/%3E%3Cpath d='M36 86 Q39 68 45 60 L55 60 Q61 68 64 86 Z' fill='%23ffffff'/%3E%3Crect x='30' y='84' width='40' height='6' rx='3' fill='%23ffffff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+<canvas id="bgfx" aria-hidden="true" hidden></canvas>
 <header class="topbar">
   <a class="brand" href="/" id="brandLink">
-    <span class="brand-mark" aria-hidden="true"></span>
-    <span class="brand-name">Pawn Stars</span>
+    <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="24" fill="#0b0b0d"/><path d="M27 31 L29.5 37.5 L36 37.5 L31 41.5 L33 48 L27 44 L21 48 L23 41.5 L18 37.5 L24.5 37.5 Z" fill="#ff8a00"/><path d="M50 9 L53 17 L61 17 L54.5 22 L57 30 L50 25 L43 30 L45.5 22 L39 17 L47 17 Z" fill="#ff8a00"/><path d="M73 31 L75.5 37.5 L82 37.5 L77 41.5 L79 48 L73 44 L67 48 L69 41.5 L64 37.5 L70.5 37.5 Z" fill="#ff8a00"/><circle cx="50" cy="46" r="11" fill="#ffffff"/><path d="M36 86 Q39 68 45 60 L55 60 Q61 68 64 86 Z" fill="#ffffff"/><rect x="30" y="84" width="40" height="6" rx="3" fill="#ffffff"/></svg></span>
+    <span class="brand-name">Pawn<span class="brand-star" aria-hidden="true">★</span>Stars</span>
   </a>
   <nav class="topnav">
     <button class="btn ghost" id="homeBtn" type="button">Play</button>
@@ -33,6 +34,11 @@
         <span>Your name</span>
         <input id="nameInput" maxlength="20" autocomplete="nickname" placeholder="e.g. Sam" spellcheck="false">
       </label>
+    </div>
+
+    <div class="theme-strip" aria-label="Website theme">
+      <span class="field-label">Theme</span>
+      <div class="theme-chips" id="homeThemes"></div>
     </div>
 
     <div class="home-grid">
@@ -64,7 +70,7 @@
         <h2>Join with a code</h2>
         <form id="joinForm" class="join-row">
           <label class="sr" for="codeInput">Game code</label>
-          <input id="codeInput" maxlength="8" placeholder="ABC12" autocomplete="off" spellcheck="false">
+          <input id="codeInput" maxlength="60" placeholder="1234" inputmode="numeric" pattern="[0-9]*" autocomplete="off" spellcheck="false">
           <button class="btn primary" type="submit">Join</button>
         </form>
         <div class="lobby-head">
@@ -155,12 +161,20 @@
   </div>
   <div class="preview-strip" id="previewStrip" aria-hidden="true"></div>
   <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="world" type="button">Theme</button>
     <button class="tab" role="tab" data-tab="board" type="button">Board</button>
     <button class="tab" role="tab" data-tab="pieces" type="button">Pieces</button>
     <button class="tab" role="tab" data-tab="app" type="button">Site</button>
   </div>
 
-  <div class="tab-panel" data-panel="board">
+  <div class="tab-panel" data-panel="world">
+    <h3>Website theme</h3>
+    <p class="muted small-text">Each theme changes the whole site: background, colours, board and matching pieces. You can still change the board or pieces afterwards.</p>
+    <div class="world-grid" id="worldSwatches"></div>
+    <label class="check" for="optBgfx"><input type="checkbox" id="optBgfx"> Animated background</label>
+  </div>
+
+  <div class="tab-panel" data-panel="board" hidden>
     <h3>Board theme</h3>
     <div class="swatches" id="boardSwatches"></div>
     <h3>Your own colours</h3>
@@ -178,8 +192,9 @@
   </div>
 
   <div class="tab-panel" data-panel="pieces" hidden>
-    <h3>Piece set</h3>
+    <h3>Piece style</h3>
     <div class="swatches sets" id="setSwatches"></div>
+    <button class="btn primary" id="makeSetBtn" type="button">＋ Make your own set</button>
     <h3>Piece colours</h3>
     <div class="color-row">
       <label for="wPieceColor"><input type="color" id="wPieceColor"> White pieces</label>
@@ -188,14 +203,46 @@
     <button class="btn small" id="resetPieceColors" type="button">Use the set's own colours</button>
     <div id="customUpload">
       <h3>Upload your own pieces</h3>
-      <p class="muted small-text">Pick an image for each piece (PNG with a see-through background works best). They're saved on this laptop only, and only you see them. Choose the "Your own" set above to use them.</p>
+      <p class="muted small-text">Pick a picture for each piece (PNG with a see-through background works best). They're saved on this laptop only, and only you see them. Choose the "Photos" style above to use them.</p>
       <div class="upload-grid" id="uploadGrid"></div>
       <button class="btn small" id="clearCustom" type="button">Remove uploaded pieces</button>
     </div>
   </div>
 
+  <div class="tab-panel" data-panel="maker" hidden>
+    <button class="btn small ghost back-btn" id="makerBack" type="button">← Back to piece styles</button>
+    <div class="maker-preview" id="makerPreview" aria-label="Preview of your set"></div>
+    <label class="field" for="makerName"><span class="field-label">Name</span><input id="makerName" maxlength="18" placeholder="My set"></label>
+    <h3>Shape</h3>
+    <div class="chips" id="makerShape"></div>
+    <div id="makerSculpt">
+      <h3>Finish</h3>
+      <div class="chips" id="makerFinish"></div>
+      <h3>Decoration</h3>
+      <div class="chips" id="makerDeco"></div>
+    </div>
+    <h3>Colours</h3>
+    <div class="color-row">
+      <label for="makerW"><input type="color" id="makerW"> White side</label>
+      <label for="makerB"><input type="color" id="makerB"> Black side</label>
+    </div>
+    <div class="color-row">
+      <label for="makerOutline"><input type="color" id="makerOutline"> Outline</label>
+      <label class="check" for="makerAutoOutline"><input type="checkbox" id="makerAutoOutline"> Pick outline for me</label>
+    </div>
+    <label class="field" for="makerStroke"><span class="field-label">Outline thickness</span><input type="range" id="makerStroke" min="0" max="6" step="0.2"></label>
+    <div class="color-row">
+      <label class="check" for="makerGlowOn"><input type="checkbox" id="makerGlowOn"> Glow</label>
+      <label for="makerGlow"><input type="color" id="makerGlow"> Glow colour</label>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" id="makerSave" type="button">Save and use this set</button>
+      <button class="btn danger" id="makerDelete" type="button" hidden>Delete set</button>
+    </div>
+  </div>
+
   <div class="tab-panel" data-panel="app" hidden>
-    <h3>Site theme</h3>
+    <h3>Light or dark (Classic theme)</h3>
     <div class="chips" id="appThemeChips">
       <button type="button" class="chip" data-v="dark">Dark</button>
       <button type="button" class="chip" data-v="light">Light</button>
@@ -223,6 +270,7 @@
 <script src="/chess-engine.js"></script>
 <script src="/ai.js"></script>
 <script src="/pieces.js"></script>
+<script src="/effects.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>

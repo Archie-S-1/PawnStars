@@ -68,6 +68,7 @@
 <script src="/chess-engine.js"></script>
 <script src="/ai.js"></script>
 <script src="/pieces.js"></script>
+<script src="/effects.js"></script>
 <script>
 (function () {
   'use strict';
@@ -180,9 +181,22 @@
       });
     });
   });
+  t('pieces', 'Home-made sets (from the set maker) draw correctly', function () {
+    Pieces.setCustom([{ id: 'my-test', name: 'Test', colors: { w: '#ff00aa', b: '#112233' }, spec: { shape: 'chunky', finish: 'marble', deco: 'stars', glow: '#00ffcc', outline: '#ffffff', stroke: 3 } }]);
+    var html = Pieces.html('q', 'my-test', null, {});
+    Pieces.setCustom([]);
+    assert(html.indexOf('#112233') >= 0 && html.indexOf('#00ffcc') >= 0, 'custom set not drawn with its colours');
+  });
   t('pieces', 'Piece colours can be changed', function () {
     var a = Pieces.html('K', 'royal', { w: '#ff0000', b: '#000000' }, {});
     assert(a.indexOf('#ff0000') >= 0, 'custom colour not used');
+  });
+
+  t('pieces', 'All animated theme backgrounds run', function () {
+    var cv = document.createElement('canvas'); cv.id = 'bgfx'; cv.style.display = 'none'; document.body.appendChild(cv);
+    return Effects.names.reduce(function (p, n) {
+      return p.then(function () { Effects.set(n); return new Promise(function (r) { setTimeout(r, 120); }); });
+    }, Promise.resolve()).then(function () { Effects.set(null); cv.remove(); });
   });
 
   /* ---------- server ---------- */
@@ -210,6 +224,9 @@
       .then(function (j) { assert(Array.isArray(j.games), 'bad answer'); });
   });
   t('server', 'Create a game and a friend joins it', function () { return newGame(); });
+  t('server', 'Game codes are 4 numbers', function () {
+    return newGame().then(function (g) { assert(/^[0-9]{4}$/.test(g.code), 'code was ' + g.code); });
+  });
   t('server', 'Game shows in the open games list (and disappears once full)', function () {
     var code, token, es;
     return api('create', { name: 'Lobby test', color: 'w', isPublic: true }).then(function (r) {

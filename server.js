@@ -12,13 +12,13 @@ const Chess = require(path.join(PUBLIC, 'chess-engine.js'));
 const games = new Map();
 
 /* ---------- helpers ---------- */
-const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+/* Game codes are 4 numbers (1000-9999) so they're easy to say out loud. */
 function newCode() {
-  let c;
+  let c, tries = 0;
   do {
-    c = '';
-    for (let i = 0; i < 5; i++) c += CODE_CHARS[crypto.randomInt(CODE_CHARS.length)];
-  } while (games.has(c));
+    c = String(crypto.randomInt(1000, 10000));
+    tries++;
+  } while (games.has(c) && tries < 20000);
   return c;
 }
 const newToken = () => crypto.randomBytes(16).toString('hex');
