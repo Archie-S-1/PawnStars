@@ -1,0 +1,13 @@
+{
+  "name": "pawn-stars-chess",
+  "version": "1.0.0",
+  "description": "Play chess with friends online, with custom boards and pieces.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

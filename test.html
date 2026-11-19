@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pawn Stars Self-Test</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  .wrap { max-width: 860px; margin: 0 auto; padding: 28px 16px 60px; display: flex; flex-direction: column; gap: 18px; }
+  .wrap h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 800; }
+  .summary { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .big { font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; }
+  .big.pass { color: var(--good); } .big.fail { color: var(--bad); }
+  .bar { height: 8px; background: var(--panel-2); border-radius: 99px; overflow: hidden; flex: 1; min-width: 160px; }
+  .bar > div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  .group h2 { margin-bottom: 8px; }
+  .results { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .results li { display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; align-items: start; padding: 7px 10px; background: var(--panel-2); border-radius: 8px; }
+  .results .ic { font-weight: 800; text-align: center; }
+  .results li.pass .ic { color: var(--good); }
+  .results li.fail .ic { color: var(--bad); }
+  .results li.run .ic { color: var(--muted); }
+  .results .why { grid-column: 2 / 4; color: var(--bad); font-size: 0.88rem; }
+  .results .ms { color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+  .steps { margin: 0; padding-left: 1.3em; display: flex; flex-direction: column; gap: 8px; }
+  .steps li::marker { font-weight: 700; color: var(--accent); }
+  .steps input[type=checkbox] { accent-color: var(--accent); margin-right: 6px; }
+  code { background: var(--panel-2); padding: 1px 6px; border-radius: 5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1>Pawn Stars self-test</h1>
+    <p class="muted">This page checks the chess rules, the computer player, the piece sets and the online server. Everything should go green before you put the site online.</p>
+  </div>
+
+  <div class="card">
+    <div class="summary">
+      <span class="big" id="summary">Running tests…</span>
+      <div class="bar"><div id="progress"></div></div>
+      <button class="btn" id="rerun" type="button">Run again</button>
+    </div>
+  </div>
+
+  <div class="card group"><h2>Chess rules</h2><ul class="results" id="g-rules"></ul></div>
+  <div class="card group"><h2>Computer player</h2><ul class="results" id="g-ai"></ul></div>
+  <div class="card group"><h2>Piece sets</h2><ul class="results" id="g-pieces"></ul></div>
+  <div class="card group"><h2>Online server</h2><ul class="results" id="g-server"></ul></div>
+
+  <div class="card">
+    <h2>Now try it yourself</h2>
+    <p class="muted">The automatic tests can't check what you see, so play one quick game against yourself using two browser tabs.</p>
+    <ol class="steps">
+      <li><label><input type="checkbox">Open the site: <a href="/" target="_blank" rel="noopener">click here</a>. Type a name and click <b>Create game</b>.</label></li>
+      <li><label><input type="checkbox">Click <b>Copy</b>, then open a new tab (Ctrl+T, or Cmd+T on a Mac), paste the link and press Enter. Both tabs show the same name because they share one browser. That's normal, and your friends will each have their own.</label></li>
+      <li><label><input type="checkbox">Both tabs should say the game started. Make a few moves, switching tabs each time. Try clicking a piece then a square, and also dragging.</label></li>
+      <li><label><input type="checkbox">Send a chat message from one tab and check it shows in the other.</label></li>
+      <li><label><input type="checkbox">Press refresh (F5) in one tab. You should still be in the game as the same player.</label></li>
+      <li><label><input type="checkbox">Click <b>Customise</b> and change the board, pieces and colours. The board should change straight away, and your choice is still there after a refresh.</label></li>
+      <li><label><input type="checkbox">Click <b>Resign</b> (it asks you to click twice), then <b>Rematch</b> in both tabs. The colours should swap.</label></li>
+      <li><label><input type="checkbox">Go back home and play a few moves against the computer.</label></li>
+    </ol>
+    <p class="muted small-text">Want to try it from another laptop or phone? Look at the black window that started the server: it shows an "Other devices on the same Wi-Fi" address. Uni Wi-Fi often blocks this, so try it at home, or skip it. The online version won't have this problem.</p>
+  </div>
+</div>
+
+<script src="/chess-engine.js"></script>
+<script src="/ai.js"></script>
+<script src="/pieces.js"></script>
+<script>
+(function () {
+  'use strict';
+  var tests = [], done = 0, failed = 0;
+  function t(group, name, fn) { tests.push({ group: group, name: name, fn: fn }); }
+  function assert(cond, msg) { if (!cond) throw new Error(msg); }
+  function eq(a, b, what) { if (a !== b) throw new Error(what + ': expected ' + JSON.stringify(b) + ', got ' + JSON.stringify(a)); }
+
+  function perft(c, d) {
+    if (!d) return 1;
+    var ms = c.moves({ raw: true });
+    if (d === 1) return ms.length;
+    var n = 0;
+    for (var i = 0; i < ms.length; i++) { var u = c._make(ms[i]); n += perft(c, d - 1); c._unmake(u); }
+    return n;
+  }
+  function play(sans, fen) {
+    var g = new Chess(fen);
+    sans.forEach(function (s) { if (!g.move(s)) throw new Error('Move ' + s + ' was refused'); });
+    return g;
+  }
+
+  /* ---------- chess rules ---------- */
+  t('rules', 'Starting position has the right number of moves (8,902 after 3 moves each way)', function () {
+    eq(perft(new Chess(), 3), 8902, 'positions');
+  });
+  t('rules', 'Tricky test position: castling, pins and en passant all counted correctly', function () {
+    eq(perft(new Chess('r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1'), 3), 97862, 'positions');
+  });
+  t('rules', 'Promotion test position counted correctly', function () {
+    eq(perft(new Chess('rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8'), 3), 62379, 'positions');
+  });
+  t('rules', 'Checkmate is detected (fastest possible mate)', function () {
+    var o = play(['f3', 'e5', 'g4', 'Qh4#']).outcome();
+    assert(o, 'game should be over'); eq(o.result, '0-1', 'result'); eq(o.reason, 'checkmate', 'reason');
+  });
+  t('rules', 'Stalemate is a draw', function () {
+    var o = new Chess('7k/5Q2/6K1/8/8/8/8/8 b - - 0 1').outcome();
+    eq(o && o.reason, 'stalemate', 'reason');
+  });
+  t('rules', 'Repeating the same position three times is a draw', function () {
+    var o = play(['Nf3', 'Nf6', 'Ng1', 'Ng8', 'Nf3', 'Nf6', 'Ng1', 'Ng8']).outcome();
+    eq(o && o.reason, 'threefold repetition', 'reason');
+  });
+  t('rules', 'King and bishop vs king is a draw', function () {
+    eq((new Chess('k7/8/8/8/8/8/8/KB6 w - - 0 1').outcome() || {}).reason, 'insufficient material', 'reason');
+  });
+  t('rules', 'Castling on both sides works', function () {
+    var sans = new Chess('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1').moves().map(function (m) { return m.san; });
+    assert(sans.indexOf('O-O') >= 0 && sans.indexOf('O-O-O') >= 0, 'castling moves missing');
+  });
+  t('rules', "Can't castle through check", function () {
+    var sans = new Chess('r3k2r/8/8/8/8/8/5r2/R3K2R w KQkq - 0 1').moves().map(function (m) { return m.san; });
+    assert(sans.indexOf('O-O') < 0, 'castled through an attacked square');
+  });
+  t('rules', 'En passant capture works', function () {
+    var g = play(['e4', 'a6', 'e5', 'd5']);
+    var m = g.move('exd6');
+    assert(m && m.flags.indexOf('e') >= 0, 'en passant refused');
+    eq(g.get('d5'), null, 'captured pawn should be removed');
+  });
+  t('rules', 'Pawn promotion offers queen, rook, bishop and knight', function () {
+    var promos = new Chess('4k3/1P6/8/8/8/8/8/4K3 w - - 0 1').moves().filter(function (m) { return m.promotion; }).map(function (m) { return m.promotion; }).sort().join('');
+    eq(promos, 'bnqr', 'promotion choices');
+  });
+  t('rules', 'Illegal moves are refused', function () {
+    var g = new Chess();
+    assert(!g.move({ from: 'e2', to: 'e5' }), 'pawn jumped 3 squares');
+    assert(!g.move({ from: 'e7', to: 'e5' }), 'black moved on white’s turn');
+    assert(!new Chess('4k3/8/8/8/8/8/3r4/4K3 w - - 0 1').move({ from: 'e1', to: 'd1' }), 'king walked into check');
+    assert(!new Chess('4k3/4r3/8/8/8/8/4B3/4K3 w - - 0 1').move({ from: 'e2', to: 'd3' }), 'pinned bishop moved');
+  });
+
+  /* ---------- AI ---------- */
+  [1, 2, 3, 4].forEach(function (lvl) {
+    var names = { 1: 'Easy', 2: 'Medium', 3: 'Hard', 4: 'Expert' };
+    t('ai', names[lvl] + ' computer picks a legal move in time', function () {
+      var start = Date.now(), g = new Chess();
+      var mv = ChessAI.bestMove(g.fen(), lvl);
+      assert(mv, 'no move returned');
+      assert(g.move(mv), 'the move was not legal');
+      assert(Date.now() - start < 6000, 'took too long (' + (Date.now() - start) + 'ms)');
+    });
+  });
+  t('ai', 'Medium computer spots a checkmate in one', function () {
+    var fen = '6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1', g = new Chess(fen);
+    var m = g.move(ChessAI.bestMove(fen, 2));
+    assert(m && /#/.test(m.san), 'played ' + (m && m.san) + ' instead of mate');
+  });
+  t('ai', 'Computer runs in the background without freezing the page', function () {
+    return new Promise(function (resolve, reject) {
+      var w;
+      try { w = new Worker('/ai-worker.js'); } catch (e) { return reject(new Error('background worker could not start')); }
+      var timer = setTimeout(function () { w.terminate(); reject(new Error('no answer after 8 seconds')); }, 8000);
+      w.onmessage = function (e) { clearTimeout(timer); w.terminate(); e.data.move ? resolve() : reject(new Error('no move')); };
+      w.onerror = function (e) { clearTimeout(timer); reject(new Error(e.message || 'worker error')); };
+      w.postMessage({ id: 1, fen: new Chess().fen(), level: 2 });
+    });
+  });
+
+  /* ---------- pieces ---------- */
+  Pieces.SETS.forEach(function (s) {
+    if (s.id === 'custom') return;
+    t('pieces', s.name + ' set draws all 12 pieces', function () {
+      'KQRBNPkqrbnp'.split('').forEach(function (p) {
+        var html = Pieces.html(p, s.id, null, {});
+        var box = document.createElement('div'); box.innerHTML = html;
+        var svg = box.querySelector('svg');
+        assert(svg && svg.children.length > 0, p + ' did not draw');
+      });
+    });
+  });
+  t('pieces', 'Piece colours can be changed', function () {
+    var a = Pieces.html('K', 'royal', { w: '#ff0000', b: '#000000' }, {});
+    assert(a.indexOf('#ff0000') >= 0, 'custom colour not used');
+  });
+
+  /* ---------- server ---------- */
+  function api(action, body) {
+    return fetch('/api/' + action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) })
+      .then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); });
+  }
+  function newGame(extra) {
+    var g = {};
+    return api('create', Object.assign({ name: 'Tester A', color: 'w', time: '', isPublic: false }, extra || {}))
+      .then(function (r) { eq(r.status, 200, 'create status'); g.code = r.body.code; g.w = r.body.token; return api('join', { code: g.code, name: 'Tester B' }); })
+      .then(function (r) { eq(r.body.color, 'b', 'joining player colour'); g.b = r.body.token; return g; });
+  }
+  function move(g, token, from, to) { return api('move', { code: g.code, token: token, move: { from: from, to: to } }); }
+  function stateOf(g, token) {
+    return new Promise(function (resolve, reject) {
+      var es = new EventSource('/api/stream?code=' + g.code + '&token=' + (token || ''));
+      var timer = setTimeout(function () { es.close(); reject(new Error('no live update from the server after 5 seconds')); }, 5000);
+      es.onmessage = function (e) { clearTimeout(timer); es.close(); resolve(JSON.parse(e.data)); };
+    });
+  }
+
+  t('server', 'Server is running and answering', function () {
+    return fetch('/api/lobby').then(function (r) { eq(r.status, 200, 'status'); return r.json(); })
+      .then(function (j) { assert(Array.isArray(j.games), 'bad answer'); });
+  });
+  t('server', 'Create a game and a friend joins it', function () { return newGame(); });
+  t('server', 'Game shows in the open games list (and disappears once full)', function () {
+    var code, token, es;
+    return api('create', { name: 'Lobby test', color: 'w', isPublic: true }).then(function (r) {
+      code = r.body.code; token = r.body.token;
+      es = new EventSource('/api/stream?code=' + code + '&token=' + token);
+      return new Promise(function (res) { setTimeout(res, 600); });
+    }).then(function () { return fetch('/api/lobby').then(function (r) { return r.json(); }); })
+      .then(function (j) {
+        assert(j.games.some(function (g) { return g.code === code; }), 'new game not listed');
+        return api('join', { code: code, name: 'Joiner' });
+      }).then(function () { return fetch('/api/lobby').then(function (r) { return r.json(); }); })
+      .then(function (j) { es.close(); assert(!j.games.some(function (g) { return g.code === code; }), 'full game still listed'); });
+  });
+  t('server', 'Live updates reach the other player', function () {
+    var g;
+    return newGame().then(function (x) { g = x; return move(g, g.w, 'e2', 'e4'); })
+      .then(function () { return stateOf(g, g.b); })
+      .then(function (s) { eq(s.sans.join(' '), 'e4', 'moves seen by black'); eq(s.you, 'b', 'player colour'); });
+  });
+  t('server', "Moving out of turn is blocked", function () {
+    return newGame().then(function (g) { return move(g, g.b, 'e7', 'e5'); })
+      .then(function (r) { eq(r.status, 400, 'status'); });
+  });
+  t('server', 'Illegal moves are blocked (no cheating by editing the page)', function () {
+    return newGame().then(function (g) { return move(g, g.w, 'e2', 'e6'); })
+      .then(function (r) { eq(r.status, 400, 'status'); });
+  });
+  t('server', 'Checkmate ends the game with the right winner', function () {
+    var g;
+    return newGame().then(function (x) { g = x; return move(g, g.w, 'f2', 'f3'); })
+      .then(function () { return move(g, g.b, 'e7', 'e5'); })
+      .then(function () { return move(g, g.w, 'g2', 'g4'); })
+      .then(function () { return move(g, g.b, 'd8', 'h4'); })
+      .then(function () { return stateOf(g, g.w); })
+      .then(function (s) { eq(s.status, 'over', 'status'); eq(s.result, '0-1', 'result'); eq(s.reason, 'checkmate', 'reason'); });
+  });
+  t('server', 'Chat messages are delivered', function () {
+    var g;
+    return newGame().then(function (x) { g = x; return api('chat', { code: g.code, token: g.b, text: 'hello there' }); })
+      .then(function () { return stateOf(g, g.w); })
+      .then(function (s) { assert(s.chat.some(function (m) { return m.text === 'hello there'; }), 'message missing'); });
+  });
+  t('server', 'Draw offer and accept', function () {
+    var g;
+    return newGame().then(function (x) { g = x; return move(g, g.w, 'e2', 'e4'); })
+      .then(function () { return move(g, g.b, 'e7', 'e5'); })
+      .then(function () { return api('draw', { code: g.code, token: g.w, op: 'offer' }); })
+      .then(function () { return api('draw', { code: g.code, token: g.b, op: 'accept' }); })
+      .then(function () { return stateOf(g, g.w); })
+      .then(function (s) { eq(s.result, '1/2-1/2', 'result'); eq(s.reason, 'agreement', 'reason'); });
+  });
+  t('server', 'Resign, then rematch swaps colours', function () {
+    var g;
+    return newGame().then(function (x) { g = x; return move(g, g.w, 'e2', 'e4'); })
+      .then(function () { return move(g, g.b, 'e7', 'e5'); })
+      .then(function () { return api('resign', { code: g.code, token: g.b }); })
+      .then(function () { return stateOf(g, g.w); })
+      .then(function (s) { eq(s.result, '1-0', 'result after black resigns'); })
+      .then(function () { return api('rematch', { code: g.code, token: g.w }); })
+      .then(function () { return api('rematch', { code: g.code, token: g.b }); })
+      .then(function () { return stateOf(g, g.w); })
+      .then(function (s) { eq(s.status, 'playing', 'status'); eq(s.you, 'b', 'creator should now be black'); eq(s.gameNo, 2, 'game number'); });
+  });
+  t('server', 'Clocks are set up for timed games', function () {
+    return newGame({ time: '5+0' }).then(function (g) { return stateOf(g, g.w); })
+      .then(function (s) { eq(s.timeControl, '5+0', 'time control'); eq(s.clocks.w, 300000, 'white clock'); });
+  });
+  t('server', 'Refreshing the page keeps your seat', function () {
+    return newGame().then(function (g) { return api('join', { code: g.code, name: 'Tester B', token: g.b }); })
+      .then(function (r) { eq(r.body.color, 'b', 'seat after refresh'); });
+  });
+  t('server', 'A third person becomes a watcher', function () {
+    return newGame().then(function (g) { return api('join', { code: g.code, name: 'Watcher' }); })
+      .then(function (r) { eq(r.body.color, 'spectator', 'third person'); });
+  });
+  t('server', 'A wrong game code gives a clear message', function () {
+    return api('join', { code: 'ZZZZZ', name: 'x' }).then(function (r) { eq(r.status, 404, 'status'); assert(r.body.error, 'no message'); });
+  });
+
+  /* ---------- runner ---------- */
+  var GROUPS = { rules: 'g-rules', ai: 'g-ai', pieces: 'g-pieces', server: 'g-server' };
+  function run() {
+    done = 0; failed = 0;
+    Object.keys(GROUPS).forEach(function (g) { document.getElementById(GROUPS[g]).innerHTML = ''; });
+    var sum = document.getElementById('summary'); sum.className = 'big'; sum.textContent = 'Running tests…';
+    var rows = tests.map(function (x) {
+      var li = document.createElement('li'); li.className = 'run';
+      li.innerHTML = '<span class="ic">…</span><span class="nm"></span><span class="ms"></span>';
+      li.querySelector('.nm').textContent = x.name;
+      document.getElementById(GROUPS[x.group]).appendChild(li);
+      return li;
+    });
+    var i = 0;
+    function next() {
+      if (i >= tests.length) return finish();
+      var x = tests[i], li = rows[i], start = performance.now();
+      i++;
+      setTimeout(function () {
+        var p;
+        try { p = Promise.resolve(x.fn()); } catch (e) { p = Promise.reject(e); }
+        var timeout = new Promise(function (_, rej) { setTimeout(function () { rej(new Error('took longer than 15 seconds')); }, 15000); });
+        Promise.race([p, timeout]).then(function () {
+          li.className = 'pass'; li.querySelector('.ic').textContent = '✓';
+        }, function (e) {
+          failed++; li.className = 'fail'; li.querySelector('.ic').textContent = '✗';
+          var why = document.createElement('span'); why.className = 'why';
+          why.textContent = (e && e.message) || String(e);
+          if (x.group === 'server' && /fetch|Failed|NetworkError|load/i.test(why.textContent)) why.textContent += ' (is the test server window still open?)';
+          li.appendChild(why);
+        }).then(function () {
+          li.querySelector('.ms').textContent = Math.round(performance.now() - start) + ' ms';
+          done++;
+          document.getElementById('progress').style.width = (done / tests.length * 100) + '%';
+          next();
+        });
+      }, 20);
+    }
+    function finish() {
+      if (failed) { sum.className = 'big fail'; sum.textContent = failed + ' of ' + tests.length + ' tests failed. Send Claude a screenshot of this page.'; }
+      else { sum.className = 'big pass'; sum.textContent = 'All ' + tests.length + ' tests passed ✓'; }
+    }
+    next();
+  }
+  document.getElementById('rerun').addEventListener('click', run);
+  run();
+})();
+</script>
+</body>
+</html>
